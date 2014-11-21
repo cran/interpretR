@@ -1,0 +1,11 @@
+Planned changes in next versions:
+
+* add permutation based performance measures
+
+
+---------------------------------------------------------------
+Change log:
+
+* Version 0.1.0: November 2014
+-Package submitted to CRAN with one function: parDepPlot
+
