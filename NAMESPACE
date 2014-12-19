@@ -1,2 +1,2 @@
-import(randomForest)
+import(randomForest, AUC)
 exportPattern("^[[:alpha:]]+")

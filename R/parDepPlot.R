@@ -1,16 +1,23 @@
 #' Binary Classifier Interpretation functions: Partial Dependence Plots
 #'
-#' \code{parDepPlot} creates partial dependence plots for binary (cross-validated) classification models. Currently only binary classification model estimated with the packages \code{randomForest} and \code{ada} are supported.
+#' \code{parDepPlot} creates partial dependence plots for binary (cross-validated) classification models. Currently only binary classification models estimated with the packages \code{randomForest} and \code{ada} are supported.
 #'
 #' @param x.name the name of the predictor as a character string for which a partial dependence plot has to be created.
 #' @param object can be a model or a list of cross- validated models. Currently only binary classification models built using the packages \code{randomForest} and \code{ada} are supported.
 #' @param data a data frame containing the predictors for the model or a list of data frames for cross-validation with length equal to the number of models.
-#' @param xlab  label for the x-axis.
+#' @param rm.outliers boolean, remove the outliers in x.name. Outliers are values that are smaller than max(Q1-fact*IQR,min) or greater than min(Q3+fact*IQR,max).
+#' @param fact factor to use in rm.outliers. The default is 1.5.
+#' @param n.pt if x.name is a continuous predictor, the number of points that will be used to plot the curve.
+#' @param robust if TRUE than the median is used to plot the central tendency. If FALSE the mean is used. 
+#' @param ci boolean. Should a confidence interval based on quantiles be plotted? This only works if robust=TRUE.
+#' @param u.quant Upper quantile for ci. This only works if ci=TRUE and robust=TRUE.
+#' @param l.quant Lower quantile for ci. This only works if ci=TRUE and robust=TRUE.
+#' @param xlab  label for the x-axis. Is determined automatically if NULL.
 #' @param ylab	label for the y-axis.
 #' @param main main title for the plot.
 #' @param ...  other graphical parameters for \code{plot}.
 #' @references The code in this function uses part of the code from the \code{partialPlot} function in \code{randomForest}. It is expanded and generalized to support cross-validation and other packages. 
-#' @details The response variable in the model is always assumed to take on the values \{0,1\}. Resulting partial dependence plots always refer to class 1.
+#' @details The response variable in the model is always assumed to take on the values \{0,1\}. Resulting partial dependence plots always refer to class 1. Whenever strange results are obtained the user has three options. First set rm.outliers=TRUE. Second, if that doesn't help, set robust=TRUE. Finally, if that doesn't help, the user can also try setting ci=TRUE. Areas with larger confidence intervals typically indicate problem areas. These options help the user tease out the root of strange results and converge to better parameter values.
 #' @examples
 #' 
 #' library(randomForest)
@@ -34,19 +41,36 @@
 #' 
 #' #Single model
 #' #Estimate a single model
+#' ind <- sample(nrow(iris),50)
 #' rf <- randomForest(Species~., iris[ind,])
-#' parDepPlot(x.name="Petal.Width", object=rf, data=iris)
+#' parDepPlot(x.name="Petal.Width", object=rf, data=iris[-ind,])
 #' 
+#' @seealso \code{\link{variableImportance}}
 #' @author Authors: Michel Ballings, and Dirk Van den Poel, Maintainer: \email{Michel.Ballings@@GMail.com}
 parDepPlot <-
     function (x.name,
               object, 
-              data,               
+              data,
+              rm.outliers=TRUE,
+              fact=1.5,
+              n.pt=50,
+              robust=FALSE,
+              ci=FALSE,
+              u.quant=0.75,
+              l.quant=0.25,
               xlab=x.name, 
-              ylab=if (any(class(object) %in% c("randomForest","ada"))) bquote(paste('mean(0.5*logit(P'[1],'))')) else bquote(paste('CV mean(0.5*logit(P'[1],'))')),
+              ylab=NULL,
               main= if (any(class(object) %in% c("randomForest","ada"))) paste("Partial Dependence on",x.name) else paste("Cross-Validated Partial Dependence on",x.name),
               ...)
 {
+
+if (is.null(ylab)==TRUE && robust==FALSE) {
+        ylab <- if (any(class(object) %in% c("randomForest","ada"))) bquote(paste('mean(0.5*logit(P'[1],'))')) else bquote(paste('CV mean(0.5*logit(P'[1],'))'))
+} else if (is.null(ylab)==TRUE && robust==TRUE) {
+        ylab <- if (any(class(object) %in% c("randomForest","ada"))) bquote(paste('median(0.5*logit(P'[1],'))')) else bquote(paste('CV median(0.5*logit(P'[1],'))'))
+}      
+
+if (robust==FALSE) ci <- FALSE
 
 #solve labeling issue by assigning labels before anyting else  
 ylab <- ylab
@@ -60,6 +84,8 @@ if (any(class(object) %in% c("randomForest","ada"))) {
 }
 
 xy <- vector(mode="list", length=length(object))
+xub <- vector(mode="list", length=length(object))
+xlb <- vector(mode="list", length=length(object))
 
 #get min and max of predictor across all data sets for numeric predictors
 if (!is.factor(data[[1]][,x.name]) ) {
@@ -67,9 +93,13 @@ if (!is.factor(data[[1]][,x.name]) ) {
     for (ii in 1:length(object)) {
       
       ranges[ii,] <- range(data[[ii]][,x.name])
-    
+      if (rm.outliers==TRUE) {
+        IQRval <- fact*IQR(data[[ii]][,x.name])
+        ranges[ii,] <- c(max(quantile(data[[ii]][,x.name],probs=0.25)-IQRval,min(data[[ii]][,x.name])),
+                         min(quantile(data[[ii]][,x.name],probs=0.75)+IQRval,max(data[[ii]][,x.name])))
+      }
     }
-x <- seq(min(ranges[,1]), max(ranges[,2]), length = min(length(unique(data[[1]][,x.name])), 51))
+x <- seq(min(ranges[,1]), max(ranges[,2]), length = min(length(unique(data[[1]][,x.name])), n.pt))
 }
 
 
@@ -83,6 +113,8 @@ for (ii in 1:length(object)) {
               if (is.factor(predictor) ) { #if predictor is a factor
                   x <- levels(predictor)
                   y <- numeric(length(x))
+                  ub <- numeric(length(x))
+                  lb <- numeric(length(x))
                   for (i in seq(along = x)) {
                       data.after <- data[[ii]]
                       data.after[, x.name] <- factor(rep(x[i], n), levels = x)
@@ -90,18 +122,37 @@ for (ii in 1:length(object)) {
                           if(any(class(object[[ii]]) %in% "randomForest")) pred <- predict(object[[ii]], data.after, type = "prob")
                           if(any(class(object[[ii]])=="ada")) pred <- predict(object[[ii]], data.after, type="probs")
                       
-                          y[i] <- mean(log(ifelse(pred[, 2] > 0,
+                      if (robust==TRUE) {
+                          y[i] <- median(log(ifelse(pred[, 2] > 0,
                                                               pred[, 2], .Machine$double.eps)) -
                                                    rowMeans(log(ifelse(pred > 0, pred, .Machine$double.eps))),
                                                    na.rm=TRUE)
-                      
+                          if (ci==TRUE){
+                          ub[i] <- quantile(log(ifelse(pred[, 2] > 0,
+                                                    pred[, 2], .Machine$double.eps)) -
+                                           rowMeans(log(ifelse(pred > 0, pred, .Machine$double.eps))), probs=  u.quant ,
+                                         na.rm=TRUE)
+                          
+                          lb[i] <- quantile(log(ifelse(pred[, 2] > 0,
+                                                       pred[, 2], .Machine$double.eps)) -
+                                              rowMeans(log(ifelse(pred > 0, pred, .Machine$double.eps))), probs=  l.quant ,
+                                            na.rm=TRUE)
+                          }
+                      } else {
+                          y[i] <- mean(log(ifelse(pred[, 2] > 0,
+                                                pred[, 2], .Machine$double.eps)) -
+                                       rowMeans(log(ifelse(pred > 0, pred, .Machine$double.eps))),
+                                       na.rm=TRUE)
+                      }
                            
                   }
                 
               } else { #if predictor is a numeric
                  
-                  #x <- seq(min(predictor), max(predictor), length = min(length(unique(predictor)), 51))
+
                   y <- numeric(length(x))
+                  ub <- numeric(length(x))
+                  lb <- numeric(length(x))
                   for (i in seq(along.with = x)) {
                       data.after <- data[[ii]]
                       data.after[, x.name] <- rep(x[i], n)
@@ -109,11 +160,29 @@ for (ii in 1:length(object)) {
                       if(any(class(object[[ii]]) %in% "randomForest"))  pred <- predict(object[[ii]], data.after, type = "prob")
                       if(any(class(object[[ii]])=="ada")) pred <- predict(object[[ii]], data.after, type="probs")
                           
+                      if (robust==TRUE) {
+                          y[i] <- median(log(ifelse(pred[, 2] == 0,
+                                                .Machine$double.eps, pred[, 2]))
+                                     - rowMeans(log(ifelse(pred == 0, .Machine$double.eps, pred))),
+                                     na.rm=TRUE)
+                          if (ci==TRUE){
+                          ub[i] <- quantile(log(ifelse(pred[, 2] == 0,
+                                                    .Machine$double.eps, pred[, 2]))
+                                         - rowMeans(log(ifelse(pred == 0, .Machine$double.eps, pred))), probs= u.quant ,
+                                         na.rm=TRUE)
+                          
+                          lb[i] <- quantile(log(ifelse(pred[, 2] == 0,
+                                                    .Machine$double.eps, pred[, 2]))
+                                         - rowMeans(log(ifelse(pred == 0, .Machine$double.eps, pred))), probs= l.quant ,
+                                         na.rm=TRUE)
+                          }
+                          
+                      } else {
                           y[i] <- mean(log(ifelse(pred[, 2] == 0,
                                                               .Machine$double.eps, pred[, 2]))
                                                    - rowMeans(log(ifelse(pred == 0, .Machine$double.eps, pred))),
                                                     na.rm=TRUE)
-                      
+                      }
           
                       
                     }
@@ -121,6 +190,10 @@ for (ii in 1:length(object)) {
               
           #store x and y as a data.frame in one list
           xy[[ii]] <- data.frame(x,y)
+          if (ci==TRUE){
+          xub[[ii]] <- data.frame(x,ub)
+          xlb[[ii]] <- data.frame(x,lb)
+          }
 
 #end loop through models
 }
@@ -129,10 +202,40 @@ for (ii in 1:length(object)) {
 #compute mean of y by x
 options(warn=-1)
 xy <- data.frame(Reduce(function(x, y) merge(x, y, by='x',all=TRUE),xy, accumulate=FALSE))
+if (ci==TRUE){
+  xub <- data.frame(Reduce(function(x, y) merge(x, y, by='x',all=TRUE),xub, accumulate=FALSE))
+  xlb <- data.frame(Reduce(function(x, y) merge(x, y, by='x',all=TRUE),xlb, accumulate=FALSE))
+}
 x <- xy[,1]
 
 y <- rowMeans(data.frame(xy[,2:ncol(xy)]),na.rm=TRUE)
+if (ci==TRUE){
+  ub <- rowMeans(data.frame(xub[,2:ncol(xub)]),na.rm=TRUE)
+  lb <- rowMeans(data.frame(xlb[,2:ncol(xlb)]),na.rm=TRUE)
+}
+
 options(warn=0)
-    
-plot(as.numeric(x), y, type = "l", xlab=xlab, ylab=ylab, main = main, ...)
+
+
+
+if (ci==FALSE){
+  if (is.factor(predictor)==FALSE){
+    plot(as.numeric(x), y, type = "l", xlab=xlab, ylab=ylab, main = main, ...)
+  } else {
+    plot(as.numeric(x), y, type = "l", xlab=xlab, ylab=ylab, main = main, xaxt="n",...)
+    axis(1,at=as.numeric(x), labels=x)
+  }
+}
+else if (ci==TRUE){
+  if (is.factor(predictor)==FALSE){
+    plot(as.numeric(x), y, type = "l", xlab=xlab, ylab=ylab, ylim=c(min(lb),max(ub)), main = main, ...)
+    polygon(c(as.numeric(x),rev(as.numeric(x))),c(lb,rev(ub)),col = "grey80", border = FALSE)
+    lines(as.numeric(x), y, type = "l", xlab=xlab, ylab=ylab, ylim=c(min(lb),max(ub)), main = main)
+  } else {
+    plot(as.numeric(x), y, type = "l", xlab=xlab, ylab=ylab, ylim=c(min(lb),max(ub)), main = main, xaxt="n",...)
+    polygon(c(as.numeric(x),rev(as.numeric(x))),c(lb,rev(ub)),col = "grey80", border = FALSE)
+    lines(as.numeric(x), y, type = "l", xlab=xlab, ylab=ylab, ylim=c(min(lb),max(ub)), main = main)
+    axis(1,at=as.numeric(x), labels=x)
+  }
+}  
 }

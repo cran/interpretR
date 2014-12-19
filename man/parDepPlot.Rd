@@ -3,9 +3,9 @@
 \alias{parDepPlot}
 \title{Binary Classifier Interpretation functions: Partial Dependence Plots}
 \usage{
-parDepPlot(x.name, object, data, xlab = x.name, ylab = if (any(class(object)
-  \%in\% c("randomForest", "ada"))) bquote(paste("mean(0.5*logit(P"[1], "))"))
-  else bquote(paste("CV mean(0.5*logit(P"[1], "))")), main = if
+parDepPlot(x.name, object, data, rm.outliers = TRUE, fact = 1.5,
+  n.pt = 50, robust = FALSE, ci = FALSE, u.quant = 0.75,
+  l.quant = 0.25, xlab = x.name, ylab = NULL, main = if
   (any(class(object) \%in\% c("randomForest", "ada")))
   paste("Partial Dependence on", x.name) else
   paste("Cross-Validated Partial Dependence on", x.name), ...)
@@ -17,7 +17,21 @@ parDepPlot(x.name, object, data, xlab = x.name, ylab = if (any(class(object)
 
 \item{data}{a data frame containing the predictors for the model or a list of data frames for cross-validation with length equal to the number of models.}
 
-\item{xlab}{label for the x-axis.}
+\item{rm.outliers}{boolean, remove the outliers in x.name. Outliers are values that are smaller than max(Q1-fact*IQR,min) or greater than min(Q3+fact*IQR,max).}
+
+\item{fact}{factor to use in rm.outliers. The default is 1.5.}
+
+\item{n.pt}{if x.name is a continuous predictor, the number of points that will be used to plot the curve.}
+
+\item{robust}{if TRUE than the median is used to plot the central tendency. If FALSE the mean is used.}
+
+\item{ci}{boolean. Should a confidence interval based on quantiles be plotted? This only works if robust=TRUE.}
+
+\item{u.quant}{Upper quantile for ci. This only works if ci=TRUE and robust=TRUE.}
+
+\item{l.quant}{Lower quantile for ci. This only works if ci=TRUE and robust=TRUE.}
+
+\item{xlab}{label for the x-axis. Is determined automatically if NULL.}
 
 \item{ylab}{label for the y-axis.}
 
@@ -26,10 +40,10 @@ parDepPlot(x.name, object, data, xlab = x.name, ylab = if (any(class(object)
 \item{...}{other graphical parameters for \code{plot}.}
 }
 \description{
-\code{parDepPlot} creates partial dependence plots for binary (cross-validated) classification models. Currently only binary classification model estimated with the packages \code{randomForest} and \code{ada} are supported.
+\code{parDepPlot} creates partial dependence plots for binary (cross-validated) classification models. Currently only binary classification models estimated with the packages \code{randomForest} and \code{ada} are supported.
 }
 \details{
-The response variable in the model is always assumed to take on the values \{0,1\}. Resulting partial dependence plots always refer to class 1.
+The response variable in the model is always assumed to take on the values \{0,1\}. Resulting partial dependence plots always refer to class 1. Whenever strange results are obtained the user has three options. First set rm.outliers=TRUE. Second, if that doesn't help, set robust=TRUE. Finally, if that doesn't help, the user can also try setting ci=TRUE. Areas with larger confidence intervals typically indicate problem areas. These options help the user tease out the root of strange results and converge to better parameter values.
 }
 \examples{
 library(randomForest)
@@ -53,13 +67,17 @@ parDepPlot(x.name="Petal.Width", object=rf, data=data)
 
 #Single model
 #Estimate a single model
+ind <- sample(nrow(iris),50)
 rf <- randomForest(Species~., iris[ind,])
-parDepPlot(x.name="Petal.Width", object=rf, data=iris)
+parDepPlot(x.name="Petal.Width", object=rf, data=iris[-ind,])
 }
 \author{
 Authors: Michel Ballings, and Dirk Van den Poel, Maintainer: \email{Michel.Ballings@GMail.com}
 }
 \references{
 The code in this function uses part of the code from the \code{partialPlot} function in \code{randomForest}. It is expanded and generalized to support cross-validation and other packages.
+}
+\seealso{
+\code{\link{variableImportance}}
 }
 

@@ -1,10 +1,15 @@
 Planned changes in next versions:
 
-* add permutation based performance measures
-
+* expand number of supported models for variableImportance and parDepPlot
+* expand number of supported performance measures for variableImportance
 
 ---------------------------------------------------------------
 Change log:
+
+* Version 0.1.1: December 2014
+-Included one extra function: variableImportance
+-Added additional parameters to parDepPlot: n.pt, robust, rm.outliers, u.quant, l.quant, ci, fact
+-Bug fix for factors: now only the factor levels are shown in the resulting plot
 
 * Version 0.1.0: November 2014
 -Package submitted to CRAN with one function: parDepPlot
