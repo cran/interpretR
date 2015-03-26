@@ -19,7 +19,8 @@
 #' ind <- sample(nrow(iris),50)
 #' rf <- randomForest(Species~., iris[ind,])
 #' #Obtain variable importances
-#' variableImportance(object=rf, xdata=iris[-ind,names(iris) != "Species"],ydata=iris[-ind,]$Species) 
+#' variableImportance(object=rf, xdata=iris[-ind,names(iris) != "Species"],
+#' ydata=iris[-ind,]$Species) 
 #' @seealso \code{\link{parDepPlot}}
 #' @return  A data frame containing the variable names and the mean decrease in AUROC
 #' @author Authors: Michel Ballings, and Dirk Van den Poel, Maintainer: \email{Michel.Ballings@@GMail.com}

@@ -6,7 +6,12 @@ Planned changes in next versions:
 ---------------------------------------------------------------
 Change log:
 
-* Version 0.1.1: December 2014
+* Version 0.2.1: March 2015
+-Added parameter “logit” to parDepPlot
+-Improved xlim handling in parDepPlot
+-Added invisible printing of x and y
+
+* Version 0.2.0: December 2014
 -Included one extra function: variableImportance
 -Added additional parameters to parDepPlot: n.pt, robust, rm.outliers, u.quant, l.quant, ci, fact
 -Bug fix for factors: now only the factor levels are shown in the resulting plot

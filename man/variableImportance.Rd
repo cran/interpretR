@@ -38,7 +38,8 @@ library(randomForest)
 ind <- sample(nrow(iris),50)
 rf <- randomForest(Species~., iris[ind,])
 #Obtain variable importances
-variableImportance(object=rf, xdata=iris[-ind,names(iris) != "Species"],ydata=iris[-ind,]$Species)
+variableImportance(object=rf, xdata=iris[-ind,names(iris) != "Species"],
+ydata=iris[-ind,]$Species)
 }
 \author{
 Authors: Michel Ballings, and Dirk Van den Poel, Maintainer: \email{Michel.Ballings@GMail.com}
