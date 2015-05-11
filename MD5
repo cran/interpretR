@@ -1,11 +1,11 @@
-0236498cef80add986841499aa3ab9db *DESCRIPTION
+bff13a6a9bbba6787350c591ed9fb07b *DESCRIPTION
 b48c209f5eb31de52060b085aac085ca *NAMESPACE
 0f4140ebe650cf8f65cf1c3f13572334 *R/interpretRNews.R
-b341eced28cf8a1a482d7b974f5b6a65 *R/parDepPlot.R
+62b5a21b22b6133a7ef287a86bcbc896 *R/parDepPlot.R
 898fff5e89c748b5b45517f58fc427ab *R/variableImportance.R
 53b194148d66bb079c342e2711d7e063 *R/zzz.R
-2a89d4a3bc3d10ab205b2a81f3754628 *inst/NEWS
+1ad8b4c54015a49a0f1a6d2914cc9ef8 *inst/NEWS
 3224a51ec6ebf2b0a01350c7053092e0 *man/interpretR-package.Rd
-6bf5f395086b34c8a0a2c7892292dc9d *man/interpretRNews.Rd
-3a43cb9cd6132697058c905b346b2c28 *man/parDepPlot.Rd
-01d49fc69bbd4160f6114d180b94c4c1 *man/variableImportance.Rd
+59af1ddcfa6ab55174ab57cd5cf1a679 *man/interpretRNews.Rd
+963ee5651af9b9d4a5b1772113cc4367 *man/parDepPlot.Rd
+2a322b29f8f38a8e1ab93d200e38a064 *man/variableImportance.Rd

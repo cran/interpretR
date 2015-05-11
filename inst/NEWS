@@ -5,6 +5,9 @@ Planned changes in next versions:
 
 ---------------------------------------------------------------
 Change log:
+* Version 0.2.2: May 2015
+-Added support for binary predictors with class numeric
+-Added support for plotting long variable names 
 
 * Version 0.2.1: March 2015
 -Added parameter “logit” to parDepPlot

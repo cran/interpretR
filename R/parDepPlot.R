@@ -59,9 +59,9 @@ parDepPlot <-
               ci=FALSE,
               u.quant=0.75,
               l.quant=0.25,
-              xlab=x.name, 
+              xlab=substr(x.name,1,50), 
               ylab=NULL,
-              main= if (any(class(object) %in% c("randomForest","ada"))) paste("Partial Dependence on",x.name) else paste("Cross-Validated Partial Dependence on",x.name),
+              main= if (any(class(object) %in% c("randomForest","ada"))) paste("Partial Dependence on",substr(x.name,1,20)) else paste("Cross-Validated Partial Dependence on",substr(x.name,1,10)),
               logit=TRUE, 
               ...)
 {
@@ -110,13 +110,16 @@ xlb <- vector(mode="list", length=length(object))
 #   x <- x[ x >= min(args$xlim) & x <= max(args$xlim) ]    
 # }      
 
+  
+
+      
 args <- list(...)
 if ('xlim' %in% names(args)) {
   x <- seq(min(args$xlim), max(args$xlim), length = n.pt )
 #   length = min(length(unique(data[[1]][,x.name])), n.pt)
 } else {
 #get min and max of predictor across all data sets for numeric predictors
-if (!is.factor(data[[1]][,x.name]) ) {
+if (!is.factor(data[[1]][,x.name]) && length(unique(data[[1]][,x.name]))>2 ) { 
     ranges <- matrix(NA,ncol=2,nrow=length(object))
     for (ii in 1:length(object)) {
       
@@ -128,7 +131,9 @@ if (!is.factor(data[[1]][,x.name]) ) {
       }
     }
 x <- seq(min(ranges[,1]), max(ranges[,2]), length = n.pt)
-}
+} else if (!is.factor(data[[1]][,x.name]) && length(table(data[[1]][,x.name]))==2 ) {
+  x <- c(0,1)
+  }
 }
 
 
@@ -362,7 +367,7 @@ options(warn=0)
 
 
 if (ci==FALSE){
-  if (is.factor(predictor)==FALSE){
+  if (is.factor(predictor)==FALSE && length(unique(x)) > 2){
     plot(as.numeric(x), y, type = "l", xlab=xlab, ylab=ylab, main = main, ...)
   } else {
     plot(as.numeric(x), y, type = "l", xlab=xlab, ylab=ylab, main = main, xaxt="n",...)
@@ -370,7 +375,7 @@ if (ci==FALSE){
   }
 }
 else if (ci==TRUE){
-  if (is.factor(predictor)==FALSE){
+  if (is.factor(predictor)==FALSE && length(unique(x)) > 2){
     plot(as.numeric(x), y, type = "l", xlab=xlab, ylab=ylab, ylim=c(min(lb),max(ub)), main = main, ...)
     polygon(c(as.numeric(x),rev(as.numeric(x))),c(lb,rev(ub)),col = "grey80", border = FALSE)
     lines(as.numeric(x), y, type = "l", xlab=xlab, ylab=ylab, ylim=c(min(lb),max(ub)), main = main)
