@@ -1,6 +1,6 @@
 #' Display the NEWS file
 #'
-#' \code{interpretRNews} shows the NEWS file of the interpretRNews package.
+#' \code{interpretRNews} shows the NEWS file of the interpretR package.
 #' 
 #' @examples
 #' interpretRNews()

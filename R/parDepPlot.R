@@ -73,7 +73,6 @@ if (is.null(ylab)==TRUE && robust==FALSE) {
         #regression randomForest
         if((any(class(object[[1]])=="randomForest") || any(class(object)=="randomForest")) && c(object[[1]]$type,object$type)=="regression") {
           ylab <- if (any(class(object) %in% c("randomForest","ada"))) paste('mean(Prediction)') else paste('CV mean(Prediction)')
-          regression <- TRUE
         }
 } else if (is.null(ylab)==TRUE && robust==TRUE) {
         if (logit==TRUE)  ylab <- if (any(class(object) %in% c("randomForest","ada"))) bquote(paste('median(0.5*logit(P'[1],'))')) else bquote(paste('CV median(0.5*logit(P'[1],'))'))
@@ -81,10 +80,11 @@ if (is.null(ylab)==TRUE && robust==FALSE) {
         #regression randomForest
         if((any(class(object[[1]])=="randomForest") || any(class(object)=="randomForest")) && c(object[[1]]$type,object$type)=="regression") {
           ylab <- if (any(class(object) %in% c("randomForest","ada"))) paste('median(Prediction)') else paste('CV median(Prediction)')
-          regression <- TRUE
         }
 }      
 
+if (c(object[[1]]$type,object$type)=="regression") regression <- TRUE
+      
 if (robust==FALSE) ci <- FALSE
 
 #solve labeling issue by assigning labels before anyting else  
