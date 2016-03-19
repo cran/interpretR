@@ -16,6 +16,7 @@
 #' @param ylab	label for the y-axis.
 #' @param main main title for the plot.
 #' @param logit boolean. Should the y-axis be on a logit scale or not? If FALSE, it is recommended to set robust=TRUE. Only applicable for classifcation.
+#' @param ylim The y limits of the plot
 #' @param ...  other graphical parameters for \code{plot}.
 #' @references The code in this function uses part of the code from the \code{partialPlot} function in \code{randomForest}. It is expanded and generalized to support cross-validation and other packages. 
 #' @details For classification, the response variable in the model is always assumed to take on the values \{0,1\}. Resulting partial dependence plots always refer to class 1. Whenever strange results are obtained the user has three options. First set rm.outliers=TRUE. Second, if that doesn't help, set robust=TRUE. Finally, if that doesn't help, the user can also try setting ci=TRUE. Areas with larger confidence intervals typically indicate problem areas. These options help the user tease out the root of strange results and converge to better parameter values.
@@ -62,10 +63,13 @@ parDepPlot <-
               xlab=substr(x.name,1,50), 
               ylab=NULL,
               main= if (any(class(object) %in% c("randomForest","ada"))) paste("Partial Dependence on",substr(x.name,1,20)) else paste("Cross-Validated Partial Dependence on",substr(x.name,1,10)),
-              logit=TRUE, 
+              logit=TRUE,
+              ylim=NULL,
               ...)
 {
 
+
+      
 regression <- FALSE
 if (is.null(ylab)==TRUE && robust==FALSE) {
         if (logit==TRUE)  ylab <- if (any(class(object) %in% c("randomForest","ada"))) bquote(paste('mean(0.5*logit(P'[1],'))')) else bquote(paste('CV mean(0.5*logit(P'[1],'))'))
@@ -83,7 +87,10 @@ if (is.null(ylab)==TRUE && robust==FALSE) {
         }
 }      
 
-if (c(object[[1]]$type,object$type)=="regression") regression <- TRUE
+#only randomForest supports regression
+if (any(class(object) == "randomForest")==TRUE) {
+  if (c(object[[1]]$type,object$type)=="regression") regression <- TRUE
+}
       
 if (robust==FALSE) ci <- FALSE
 
@@ -97,6 +104,8 @@ if (any(class(object) %in% c("randomForest","ada"))) {
     object <- list(object)
     data <- list(data)
 }
+
+if (length(table(data[[1]][,x.name]))==1) stop("The variable is a constant and therefore a partial dependence plot cannot be created. Make sure to have at least two values.")
 
 xy <- vector(mode="list", length=length(object))
 xub <- vector(mode="list", length=length(object))
@@ -368,21 +377,23 @@ options(warn=0)
 
 if (ci==FALSE){
   if (is.factor(predictor)==FALSE && length(unique(x)) > 2){
-    plot(as.numeric(x), y, type = "l", xlab=xlab, ylab=ylab, main = main, ...)
+    plot(as.numeric(x), y, type = "l", xlab=xlab, ylab=ylab, ylim=ylim, main = main, ...)
   } else {
-    plot(as.numeric(x), y, type = "l", xlab=xlab, ylab=ylab, main = main, xaxt="n",...)
+    plot(as.numeric(x), y, type = "l", xlab=xlab, ylab=ylab, ylim=ylim, main = main, xaxt="n",...)
     axis(1,at=as.numeric(x), labels=x)
   }
 }
 else if (ci==TRUE){
   if (is.factor(predictor)==FALSE && length(unique(x)) > 2){
-    plot(as.numeric(x), y, type = "l", xlab=xlab, ylab=ylab, ylim=c(min(lb),max(ub)), main = main, ...)
+    if (is.null(ylim)) ylim <- c(min(lb),max(ub))
+    plot(as.numeric(x), y, type = "l", xlab=xlab, ylab=ylab, ylim=ylim, main = main, ...)
     polygon(c(as.numeric(x),rev(as.numeric(x))),c(lb,rev(ub)),col = "grey80", border = FALSE)
-    lines(as.numeric(x), y, type = "l", xlab=xlab, ylab=ylab, ylim=c(min(lb),max(ub)), main = main)
+    lines(as.numeric(x), y, type = "l", xlab=xlab, ylab=ylab, main = main)
   } else {
-    plot(as.numeric(x), y, type = "l", xlab=xlab, ylab=ylab, ylim=c(min(lb),max(ub)), main = main, xaxt="n",...)
+    if (is.null(ylim)) ylim <- c(min(lb),max(ub))
+    plot(as.numeric(x), y, type = "l", xlab=xlab, ylab=ylab, ylim=ylim, main = main, xaxt="n",...)
     polygon(c(as.numeric(x),rev(as.numeric(x))),c(lb,rev(ub)),col = "grey80", border = FALSE)
-    lines(as.numeric(x), y, type = "l", xlab=xlab, ylab=ylab, ylim=c(min(lb),max(ub)), main = main)
+    lines(as.numeric(x), y, type = "l", xlab=xlab, ylab=ylab, main = main)
     axis(1,at=as.numeric(x), labels=x)
   }
 }

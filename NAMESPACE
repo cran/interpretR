@@ -1,2 +1,7 @@
 import(randomForest, AUC)
-exportPattern("^[[:alpha:]]+")
+importFrom("stats", "predict","IQR","median","quantile")
+importFrom("graphics","axis","lines","plot","polygon")
+export(interpretRNews)
+export(parDepPlot)
+export(variableImportance)
+

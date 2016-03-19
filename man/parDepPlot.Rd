@@ -10,7 +10,7 @@ parDepPlot(x.name, object, data, rm.outliers = TRUE, fact = 1.5,
   (any(class(object) \%in\% c("randomForest", "ada")))
   paste("Partial Dependence on", substr(x.name, 1, 20)) else
   paste("Cross-Validated Partial Dependence on", substr(x.name, 1, 10)),
-  logit = TRUE, ...)
+  logit = TRUE, ylim = NULL, ...)
 }
 \arguments{
 \item{x.name}{the name of the predictor as a character string for which a partial dependence plot has to be created.}
@@ -40,6 +40,8 @@ parDepPlot(x.name, object, data, rm.outliers = TRUE, fact = 1.5,
 \item{main}{main title for the plot.}
 
 \item{logit}{boolean. Should the y-axis be on a logit scale or not? If FALSE, it is recommended to set robust=TRUE. Only applicable for classifcation.}
+
+\item{ylim}{The y limits of the plot}
 
 \item{...}{other graphical parameters for \code{plot}.}
 }
