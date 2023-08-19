@@ -1,8 +1,8 @@
 Package: interpretR
 Type: Package
 Title: Binary Classifier and Regression Model Interpretation Functions
-Version: 0.2.4
-Date: 2016-03-19
+Version: 0.2.5
+Date: 2023-08-19
 Depends: randomForest
 Imports: AUC, stats, graphics
 Author: Michel Ballings and Dirk Van den Poel
@@ -10,7 +10,8 @@ Maintainer: Michel Ballings <michel.ballings@GMail.com>
 Description: Compute permutation- based performance measures and create partial
     dependence plots for (cross-validated) 'randomForest' and 'ada' models.
 License: GPL (>= 2)
+RoxygenNote: 7.2.3
 NeedsCompilation: no
-Packaged: 2016-03-19 20:36:41 UTC; michelballings
+Packaged: 2023-08-19 21:56:41 UTC; mb
 Repository: CRAN
-Date/Publication: 2016-03-19 22:55:06
+Date/Publication: 2023-08-19 22:22:31 UTC
